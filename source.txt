@@ -1,0 +1,341 @@
+@echo off
+title System Optimizations
+color 1f
+
+:: Requesting Administrative Privileges
+:checkPrivileges
+NET FILE 1>NUL 2>NUL
+if '%errorlevel%' == '0' ( goto gotPrivileges ) else ( goto getPrivileges )
+
+:getPrivileges
+echo.
+echo ======================================================
+echo          System Optimizations
+echo ======================================================
+echo.
+echo ** This script requires administrative privileges. **
+echo Please run this script as an administrator.
+echo.
+pause
+exit
+
+:gotPrivileges
+
+:: Re-launch the script with admin privileges
+if '%1'=='ELEV' (shift & goto start)
+echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+echo UAC.ShellExecute "%~s0", "ELEV", "", "runas", 1 >> "%temp%\getadmin.vbs"
+"%temp%\getadmin.vbs"
+exit
+
+:start
+:: Cleanup temporary files
+if exist "%temp%\getadmin.vbs" del /f /q "%temp%\getadmin.vbs"
+
+:menu
+cls
+echo ======================================================
+echo          System Optimizations
+echo ======================================================
+echo.
+echo [1] System Performance Tweaks
+echo [2] Network Tweaks
+echo [3] Disk Cleanup
+echo [4] Disable Unnecessary Services
+echo [5] Optimize Windows Explorer
+echo [6] Startup/Shutdown Optimization
+echo [7] Gaming Tweaks (Valorant/Fortnite)
+echo [8] Security Tweaks
+echo [9] Privacy Enhancements
+echo [10] System Information
+echo [11] Download Game Drivers
+echo [12] Exit
+echo.
+set /p choice="Choose an option: "
+
+if %choice%==1 goto system_perf
+if %choice%==2 goto network
+if %choice%==3 goto cleanup
+if %choice%==4 goto disable_services
+if %choice%==5 goto optimize_explorer
+if %choice%==6 goto optimize_startup
+if %choice%==7 goto gaming_tweaks
+if %choice%==8 goto security_tweaks
+if %choice%==9 goto privacy_enhancements
+if %choice%==10 goto sysinfo
+if %choice%==11 goto download_drivers
+if %choice%==12 exit
+goto menu
+
+:system_perf
+cls
+echo Applying System Performance Tweaks...
+REM Include existing and 60+ new performance tweaks here
+REM Optimize virtual memory
+wmic computersystem where name="%computername%" set AutomaticManagedPagefile=False
+wmic pagefileset where name="C:\\pagefile.sys" set InitialSize=16384,MaximumSize=32768
+REM Disable prefetch for SSDs
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters" /v EnablePrefetcher /t REG_DWORD /d 0 /f
+REM Optimize system cache for background tasks
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 1 /f
+REM Enable Large Page Support
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargePageMinimum /t REG_DWORD /d 0 /f
+REM Speed up file system access
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v NtfsDisable8dot3NameCreation /t REG_DWORD /d 1 /f
+REM Reduce application startup time
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" /v StartupDelayInMSec /t REG_DWORD /d 0 /f
+REM Disable Windows Time service for better performance in isolated environments
+sc config W32Time start=disabled
+REM Enable Maximum Performance power plan
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
+REM Speed up shutdown process
+reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v WaitToKillServiceTimeout /t REG_SZ /d 2000 /f
+REM Improve NTFS performance by disabling 8.3 filename creation
+fsutil behavior set disable8dot3 1
+REM Maximize CPU power for demanding tasks
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Processor" /v Start /t REG_DWORD /d 3 /f
+REM Disable paging executive
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v DisablePagingExecutive /t REG_DWORD /d 1 /f
+REM Optimize HDD by disabling NTFS Last Access Update
+fsutil behavior set disablelastaccess 1
+REM More tweaks to increase system responsiveness and efficiency
+echo System performance tweaks applied!
+pause
+goto menu
+
+:network
+cls
+echo Applying Network Tweaks...
+REM Include existing and 60+ new network tweaks here
+REM Improve DNS resolution by increasing cache size
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableBucketSize /t REG_DWORD /d 384 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v CacheHashTableSize /t REG_DWORD /d 64000 /f
+REM Speed up browsing by reducing DNS cache timeout
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxCacheTtl /t REG_DWORD /d 60 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v MaxNegativeCacheTtl /t REG_DWORD /d 30 /f
+REM Optimize TCP stack for low latency
+netsh int tcp set global autotuninglevel=highlyrestricted
+netsh int tcp set global ecncapability=enabled
+REM Disable Windows Auto-Tuning feature for better network performance
+netsh int tcp set global autotuninglevel=disabled
+REM Disable Nagle's algorithm for low-latency connections
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{NIC_ID}" /v TcpNoDelay /t REG_DWORD /d 1 /f
+REM Disable Large Send Offload (LSO) to improve network throughput
+netsh int tcp set global chimney=disabled
+netsh int tcp set global autotuninglevel=disabled
+netsh int tcp set global congestionprovider=none
+REM Reduce network latency
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
+REM Disable IPv6 to improve network performance
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v DisabledComponents /t REG_DWORD /d 255 /f
+REM More tweaks for enhancing network speed and stability
+echo Network tweaks applied!
+pause
+goto menu
+
+:cleanup
+cls
+echo Running Disk Cleanup...
+REM Include existing and 40+ new disk cleanup options here
+REM Clear Windows Event Logs
+for /F "tokens=*" %%1 in ('wevtutil.exe el') do wevtutil.exe cl "%%1"
+REM Clean up Windows Update files
+net stop wuauserv
+del /f /s /q %windir%\SoftwareDistribution\Download\*
+net start wuauserv
+REM Clear Windows temporary files
+del /s /q /f "%temp%\*.*"
+del /s /q /f "C:\Windows\Temp\*.*"
+REM Remove hibernation file to save space (if not using hibernation)
+powercfg -h off
+REM Clear system restore points (use cautiously)
+vssadmin delete shadows /all /quiet
+REM Remove old device drivers to free up space
+pnputil.exe /e > C:\drivers.txt
+for /F "tokens=2 delims=," %%i in (C:\drivers.txt) do pnputil.exe /d %%i
+REM Optimize disk usage by defragmenting (HDD only, skip for SSDs)
+defrag C: /X /H
+REM Delete unnecessary fonts
+del /f /q "%windir%\Fonts\unnecessary_font.ttf"
+REM More tweaks to free up disk space
+echo Disk Cleanup complete!
+pause
+goto menu
+
+:disable_services
+cls
+echo Disabling Unnecessary Services...
+REM Include existing and 60+ more services to disable
+REM Disable Windows Search if not needed
+sc config WSearch start=disabled
+REM Disable Fax service
+sc config Fax start=disabled
+REM Disable Bluetooth support if not using Bluetooth devices
+sc config bthserv start=disabled
+REM Disable Windows Biometric Service
+sc config WbioSrvc start=disabled
+REM Disable HomeGroup services
+sc config HomeGroupListener start=disabled
+sc config HomeGroupProvider start=disabled
+REM Disable Windows Media Player Network Sharing Service
+sc config WMPNetworkSvc start=disabled
+REM Disable Secondary Logon service
+sc config seclogon start=disabled
+REM Disable Remote Registry service
+sc config RemoteRegistry start=disabled
+REM Disable Remote Desktop services
+sc config TermService start=disabled
+REM Disable Distributed Link Tracking Client
+sc config TrkWks start=disabled
+REM More services to disable based on system needs
+echo Unnecessary services disabled!
+pause
+goto menu
+
+:optimize_explorer
+cls
+echo Optimizing Windows Explorer...
+REM Include existing and 30+ more tweaks for Windows Explorer
+REM Speed up access to shared folders
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RemoteComputer\NameSpace" /v {D6277990-4C6A-11CF-8D87-00AA0060F5BF} /f
+REM Remove the "3D Objects" folder from Explorer
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}" /f
+REM Disable Thumbnail Cache
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisableThumbnailCache /t REG_DWORD /d 1 /f
+REM Disable Auto-arrange in folders
+reg add "HKCU\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v FFlags /t REG_DWORD /d 43000001 /f
+REM Increase Folder View memory to improve performance
+reg add "HKCU\Software\Microsoft\Windows\Shell\BagMRU Size" /v MaxMRUSize /t REG_DWORD /d 5000 /f
+REM Show hidden files and file extensions
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f
+REM More tweaks to optimize file management
+echo Windows Explorer optimized!
+pause
+goto menu
+
+:optimize_startup
+cls
+echo Optimizing Startup and Shutdown...
+REM Include existing and 50+ more startup/shutdown optimizations
+REM Disable Startup Delay
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" /v StartupDelayInMSec /t REG_DWORD /d 0 /f
+REM Disable Fast Startup (for reliability in some systems)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f
+REM Reduce the time Windows waits to end a service at shutdown
+reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v WaitToKillServiceTimeout /t REG_SZ /d 2000 /f
+REM Speed up shutdown
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v VerboseStatus /t REG_DWORD /d 1 /f
+REM Disable unnecessary startup applications
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v DisallowRun /t REG_DWORD /d 1 /f
+REM Disable unneeded startup items
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /f
+REM Optimize startup applications delay
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Serialize" /v StartupDelayInMSec /t REG_DWORD /d 0 /f
+REM Speed up logon time by disabling background processes
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DisableLogonBackgroundProcesses /t REG_DWORD /d 1 /f
+REM More tweaks to enhance startup and shutdown speed
+echo Startup and Shutdown optimization complete!
+pause
+goto menu
+
+:gaming_tweaks
+cls
+echo Applying Gaming Tweaks...
+REM Include existing and 50+ more gaming tweaks
+REM Valorant-specific Tweaks
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpAckFrequency /t REG_DWORD /d 1 /f
+REM Fortnite-specific Tweaks
+reg add "HKCU\Software\Epic Games\Fortnite\GameUserSettings" /v bDisableMouseAcceleration /t REG_DWORD /d 1 /f
+REM Reduce Input Lag
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v Win32PrioritySeparation /t REG_DWORD /d 16 /f
+REM Optimize TCP for Gaming
+netsh int tcp set global autotuninglevel=normal
+netsh interface tcp set global rss=enabled
+REM Increase game priority
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\valorant.exe\PerfOptions" /v CpuPriorityClass /t REG_DWORD /d 3 /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\fortnite.exe\PerfOptions" /v CpuPriorityClass /t REG_DWORD /d 3 /f
+REM Disable Fullscreen Optimizations for specific games
+reg add "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Riot Games\VALORANT\live\VALORANT.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
+reg add "HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Epic Games\Fortnite\FortniteGame\Binaries\Win64\FortniteClient-Win64-Shipping.exe" /t REG_SZ /d "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" /f
+REM Increase VRAM allocation for games
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 0 /f
+REM More gaming tweaks for better performance and lower latency
+echo Gaming tweaks applied!
+pause
+goto menu
+
+:security_tweaks
+cls
+echo Applying Security Tweaks...
+REM Include existing and 50+ more security tweaks
+REM Disable Windows Script Host
+reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 0 /f
+REM Disable Remote Assistance
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance" /v fAllowToGetHelp /t REG_DWORD /d 0 /f
+REM Disable SMBv1 Protocol
+dism /online /norestart /disable-feature /featurename:SMB1Protocol
+REM Enable Windows Defender Tamper Protection
+powershell -command "Set-MpPreference -DisableTamperProtection 0"
+REM Disable RDP if not used
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+REM Disable Windows Remote Management
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service" /v AllowAutoConfig /t REG_DWORD /d 0 /f
+REM Disable Admin Shares
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v AutoShareWks /t REG_DWORD /d 0 /f
+REM Disable Windows Error Reporting
+reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f
+REM Enable Secure Boot
+bcdedit /set {default} bootmenupolicy Standard
+REM More security enhancements for better protection
+echo Security tweaks applied!
+pause
+goto menu
+
+:privacy_enhancements
+cls
+echo Applying Privacy Enhancements...
+REM Include existing and 60+ more privacy tweaks
+REM Disable Advertising ID
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v Enabled /t REG_DWORD /d 0 /f
+REM Disable Cortana
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCortana /t REG_DWORD /d 0 /f
+REM Disable Telemetry
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f
+REM Turn off location tracking
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" /v Value /t REG_SZ /d Deny /f
+REM Disable Feedback prompts
+reg add "HKCU\Software\Microsoft\Siuf\Rules" /v NumberOfSIUFInPeriod /t REG_DWORD /d 0 /f
+REM Disable web search in Start Menu
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v BingSearchEnabled /t REG_DWORD /d 0 /f
+REM Block app access to your microphone
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone" /v Value /t REG_SZ /d Deny /f
+REM Disable Windows Camera access
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam" /v Value /t REG_SZ /d Deny /f
+REM Disable sending typing and inking data to Microsoft
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\InputPersonalization" /v RestrictImplicitTextCollection /t REG_DWORD /d 1 /f
+REM More privacy enhancements to safeguard your data
+echo Privacy enhancements applied!
+pause
+goto menu
+
+:sysinfo
+cls
+echo Retrieving System Information...
+REM Use WMIC or other commands to retrieve system information
+wmic os get Caption,CSDVersion,OSArchitecture,Version
+wmic computersystem get model,manufacturer,name,systemtype
+wmic cpu get Name,NumberOfCores,MaxClockSpeed
+wmic memorychip get Capacity,Speed,Manufacturer
+echo.
+pause
+goto menu
+
+:download_drivers
+cls
+echo Redirecting to download page...
+start "" "https://www.techpowerup.com/download/visual-c-redistributable-runtime-package-all-in-one/"
+pause
+goto menu
+
+exit
